@@ -1,0 +1,1 @@
+Use requirements.txt for pip or pyproject.toml for uv 
