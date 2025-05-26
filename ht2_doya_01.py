@@ -21,6 +21,8 @@ TOTAL_SEATS = 198
 SERVICE_TIME = 0.5 # Час обслуговувати клієнта
 CLIENTS_TIME = 0.4 # Час між приїздами клієнтів
 
+MAX_LOG = 50 # Максимальна кількість записів у журналі
+
 exit_event = threading.Event()
 
 queue_platinum = queue.Queue()
@@ -142,7 +144,9 @@ def process_clients():
         }[client.card]
         message = Text(f"{client.name} обслуговано | {client.card.upper()} | Місце: {seat}", style=msg_color)
         log_messages.append(message)
-        if len(log_messages) > 100:
+        
+        # Обмежуємо кількість записів у журналі до MAX_LOG щоб зберегти пам'ять
+        if len(log_messages) > MAX_LOG:
             log_messages.pop(0)
 
         time.sleep(SERVICE_TIME)
@@ -174,7 +178,7 @@ def generate_layout():
 def generate_log_panel():
     total_height = console.size.height
     layout_top_ratio = 0.7  # Припустимо: top займає ~70% терміналу
-    visible_lines = max(5, int(total_height * layout_top_ratio) - 0)
+    visible_lines = max(5, int(total_height * layout_top_ratio) - 2) # Віднімемо 2 на заголовки, але можна поправити
 
     visible = log_messages[-visible_lines:] if len(log_messages) > visible_lines else log_messages
 
@@ -212,7 +216,8 @@ def generate_seats_panel():
         for row in seat_rows:
             seat = f"{row}{col}"
             if seat in assigned_seats.values():
-                client_id = [k for k, v in assigned_seats.items() if v == seat]
+                snapshot = assigned_seats.copy() # Створюємо копію для пошуку щоб уникнути проблеми багатопотоковості 
+                client_id = [k for k, v in snapshot.items() if v == seat]
                 card = client_types.get(client_id[0], "Standard") if client_id else "Standard"
                 if card == "Platinum":
                     style = "on magenta"

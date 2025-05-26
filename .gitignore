@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Full archive
+goit-algo-hw-02-master.zip
